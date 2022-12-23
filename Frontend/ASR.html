@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+      crossorigin="anonymous"
+    />
+    <style type="text/css">
+      [data-role="controls"] > button {
+          margin: 50px auto;
+          outline: none;
+          display: block;
+          border: none;
+          background-color: #D9AFD9;
+          background-image: -webkit-gradient(linear, left bottom, left top, from(#D9AFD9), to(#97D9E1));
+          background-image: -o-linear-gradient(bottom, #D9AFD9 0%, #97D9E1 100%);
+          background-image: linear-gradient(0deg, #D9AFD9 0%, #97D9E1 100%);
+          width: auto;
+          height: auto;
+          cursor: pointer;
+          
+      }
+      [data-role="controls"] > button:hover {
+          background-color: #ee7bee;
+          background-image: -webkit-gradient(linear, left bottom, left top, from(#ee7bee), to(#6fe1f5));
+          background-image: -o-linear-gradient(bottom, #ee7bee 0%, #6fe1f5 100%);
+          background-image: linear-gradient(0deg, #ee7bee 0%, #6fe1f5 100%);
+      }
+      [data-role="controls"] > button[data-recording="true"] {
+          background-color: #ff2038;
+          background-image: -webkit-gradient(linear, left bottom, left top, from(#ff2038), to(#b30003));
+          background-image: -o-linear-gradient(bottom, #ff2038 0%, #b30003 100%);
+          background-image: linear-gradient(0deg, #ff2038 0%, #b30003 100%);
+      }
+      [data-role="recordings"] > .row {
+          width: auto;
+          height: auto;
+          padding: 20px;
+      }
+      [data-role="recordings"] > .row > audio {
+          outline: none;
+      }
+      [data-role="recordings"] > .row > a {
+          display: inline-block;
+          text-align: center;
+          font-size: 20px;
+          line-height: 50px;
+          vertical-align: middle;
+          width: 50px;
+          height: 50px;
+          border-radius: 20px;
+          color: #fff;
+          font-weight: bold;
+          text-decoration: underline;
+          background-color: #0093E9;
+          background-image: -webkit-gradient(linear, left bottom, left top, from(#0093E9), to(#80D0C7));
+          background-image: -o-linear-gradient(bottom, #0093E9 0%, #80D0C7 100%);
+          background-image: linear-gradient(0deg, #0093E9 0%, #80D0C7 100%);
+          float: right;
+          margin-left: 20px;
+          cursor: pointer;
+      }
+      [data-role="recordings"] > .row > a:hover {
+          text-decoration: none;
+      }
+      [data-role="recordings"] > .row > a:active {
+          background-image: -webkit-gradient(linear, left top, left bottom, from(#0093E9), to(#80D0C7));
+          background-image: -o-linear-gradient(top, #0093E9 0%, #80D0C7 100%);
+          background-image: linear-gradient(180deg, #0093E9 0%, #80D0C7 100%);
+      }
+  </style>
+    <title text-align="center">Automatic Speech Recognition</title>
+  </head>
+  <body class="container pt-5 bg-light" style="background-image: url('header.jpg')"  >
+    <center><h1  style="color :#2D033B">Automatic Speech Recognition </h1></center>
+    <div class="mt-4" id="div_language">
+        <center><img alignment="middle" src="images.png" width="150px" height="150px"></center>
+      <h2 class="mb-3 text-dark" visibility: hidden>Select Language</h2>
+      <select class="form-select bg-secondary text-light" id="select_language" onchange="updateCountry()" visibility: hidden ></select>
+      <select class="form-select bg-secondary text-light mt-2" id="select_dialect" visibility: hidden></select>
+    </div>
+    <h2 class="mt-4 text-dark">Transcription</h2>
+    <div class="p-3" style="border: 1px solid black; height: 300px; border-radius: 12px;">
+      <span id="final" class="text-dark"></span>
+      <span id="interim" class="text-secondary"></span>
+      
+    </div>
+    <div class="mt-4">
+      <!-- <button class="btn btn-success" id="start">Start</button> -->
+      <div class="holder">
+        <div data-role="controls">
+            <button id="start">Start</button>
+        </div>
+        <div data-role="recordings"></div>
+    </div>
+    <button class="btn btn-danger" id="stop" alignment="center" >Stop</button>
+      <p id="status" class="lead mt-3 text-dark" style="display: none">Listenting ...</p>
+      
+    </div>
+  </body>
+  <script src="./speechRecognition.js"></script>
+  <script src="./language.js"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery.min.js"></script>
+        <script src="https://markjivko.com/dist/recorder.js"></script>
+        <script>
+            jQuery(document).ready(function () {
+                var $ = jQuery;
+                var myRecorder = {
+                    objects: {
+                        context: null,
+                        stream: null,
+                        recorder: null
+                    },
+                    init: function () {
+                        if (null === myRecorder.objects.context) {
+                            myRecorder.objects.context = new (
+                                    window.AudioContext || window.webkitAudioContext
+                                    );
+                        }
+                    },
+                    start: function () {
+                        var options = {audio: true, video: false};
+                        navigator.mediaDevices.getUserMedia(options).then(function (stream) {
+                            myRecorder.objects.stream = stream;
+                            myRecorder.objects.recorder = new Recorder(
+                                    myRecorder.objects.context.createMediaStreamSource(stream),
+                                    {numChannels: 1}
+                            );
+                            myRecorder.objects.recorder.record();
+                        }).catch(function (err) {});
+                    },
+                    stop: function (listObject) {
+                        if (null !== myRecorder.objects.stream) {
+                            myRecorder.objects.stream.getAudioTracks()[0].stop();
+                        }
+                        if (null !== myRecorder.objects.recorder) {
+                            myRecorder.objects.recorder.stop();
+
+                            // Validate object
+                            if (null !== listObject
+                                    && 'object' === typeof listObject
+                                    && listObject.length > 0) {
+                                // Export the WAV file
+                                myRecorder.objects.recorder.exportWAV(function (blob) {
+                                    var url = (window.URL || window.webkitURL)
+                                            .createObjectURL(blob);
+
+                                    // Prepare the playback
+                                    var audioObject = $('<audio controls></audio>')
+                                            .attr('src', url);
+
+                                    // Prepare the download link
+                                    var downloadObject = $('<a>&#9660;</a>')
+                                            .attr('href', url)
+                                            .attr('download', new Date().toUTCString() + '.mp3');
+
+                                    // Wrap everything in a row
+                                    var holderObject = $('<div class="row"></div>')
+                                            .append(audioObject)
+                                            .append(downloadObject);
+
+                                    // Append to the list
+                                    listObject.append(holderObject);
+                                });
+                            }
+                        }
+                    }
+                };
+
+                // Prepare the recordings list
+                var listObject = $('[data-role="recordings"]');
+
+                // Prepare the record button
+                $('[data-role="controls"] > button').click(function () {
+                    // Initialize the recorder
+                    myRecorder.init();
+
+                    // Get the button state 
+                    var buttonState = !!$(this).attr('data-recording');
+
+                    // Toggle
+                    if (!buttonState) {
+                        $(this).attr('data-recording', 'true');
+                        myRecorder.start();
+                    } else {
+                        $(this).attr('data-recording', '');
+                        myRecorder.stop(listObject);
+                    }
+                });
+            });
+        </script>
+</html>
